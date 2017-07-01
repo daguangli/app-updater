@@ -6,94 +6,99 @@ const pm2 = require('pm2')
     , debug = require('debug')('app-updater:main')
     , { exec } = require('child_process')
 
-module.exports = function (opts) {
+module.exports = function (zipPath, appPath) {
 
-    return function () {
-
-        async.series([
-            function (callback) {
-                debug('Start clean folder')
-                del(['**/*', '!node_modules/**']).then(function (path) {
-                    debug('deleted folder:' + path)
-                    callback(null, path)
-                })
-            },
-            function (callback) {
-                debug('unzipping...')
-                fs.createReadStream('../test.zip').pipe(unzip.Extract({ path: '.' }))
+    async.series([
+        function (callback) {
+            debug('Start clean folder')
+            del([appPath + '**/*', appPath + '!node_modules/**'], { force: true }).then(function (path) {
+                debug('deleted folder:' + path)
+                callback(null, path)
+            })
+        },
+        function (callback) {
+            debug('unzipping...')
+            var stream = fs.createReadStream(zipPath).pipe(unzip.Extract({ path: appPath }))
+            stream.on('finish', function () {
                 debug('finished unzip')
                 callback(null, null)
-            },
-            function (callback) {
-                debug('npm install...')
-                exec('npm i', function (err, stdout, stderr) {
+            })
+            stream.on('error', function (err) {
+                debug('Failed unzip')
+                callback(err)
+            })
+        },
+        function (callback) {
+            debug('npm install...')
+            process.chdir(appPath)
+            exec('npm i', function (err, stdout, stderr) {
 
-                    if (err) {
-                        debug(err)
-                        callback(err)
-                    } else {
-                        debug('finished npm install:' + stdout)
-                        callback(null, stdout)
-                    }
-                })
-            },
-            function (callback) {
-                debug('Check if process is running...')
-                async.waterfall([
-                    function (cb) {
-                        exec('pm2 describe test', function (err) {
-                            if (err) {
-                                cb(null, false)
-                            } else {
-                                cb(null, true)
-                            }
-                        })
-                    },
-                    function (exists, cb) {
-                        if (exists) {
-                            debug('Start executing: "pm2 reload test"...')
-                            exec('pm2 reload test', function (err1, stdout1, stderr1) {
-                                if (err1) {
-                                    debug('error')
-                                    debug(err1)
-                                    cb(err1)
-                                } else {
-                                    debug('Process reloaded successfully' + stdout1)
-                                    cb(null, stdout1)
-                                }
+                if (err) {
+                    debug(err)
+                    callback(err)
+                } else {
+                    debug('finished npm install:' + stdout)
+                    callback(null, stdout)
+                }
+            })
 
-                            })
+        },
+        function (callback) {
+            debug('Check if process is running...')
+            async.waterfall([
+                function (cb) {
+                    exec('pm2 describe test', function (err) {
+                        if (err) {
+                            cb(null, false)
                         } else {
-                            exec('pm2 start index.js --name test', function (err1, stdout1, stderr1) {
-                                if (err1) {
-                                    debug(err1)
-                                    cb(err1)
-                                } else {
-                                    debug(stdout1)
-                                    cb(null, stdout1)
-                                }
-
-                            })
+                            cb(null, true)
                         }
-                    }
-                ], function (err, result) {
-                    if (err)
-                        callback(err)
-                    else {
-                        callback(null, result)
-                    }
-                });
+                    })
+                },
+                function (exists, cb) {
+                    if (exists) {
+                        debug('Start executing: "pm2 reload test"...')
+                        exec('pm2 reload test', function (err1, stdout1, stderr1) {
+                            if (err1) {
+                                debug('error')
+                                debug(err1)
+                                cb(err1)
+                            } else {
+                                debug('Process reloaded successfully' + stdout1)
+                                cb(null, stdout1)
+                            }
 
-            },
-        ], function (err, results) {
-            debug('Finishing update...')
-            if (err) {
-                debug('Error updating software:' + err)
-                res.send(err.message)
-            } else {
-                debug('Software update completed successfully!')
-                res.send(results[3])
-            }
-        });
-    }
+                        })
+                    } else {
+                        exec('pm2 start index.js --name test', function (err1, stdout1, stderr1) {
+                            if (err1) {
+                                debug(err1)
+                                cb(err1)
+                            } else {
+                                debug(stdout1)
+                                cb(null, stdout1)
+                            }
+
+                        })
+                    }
+                }
+            ], function (err, result) {
+                if (err)
+                    callback(err)
+                else {
+                    callback(null, result)
+                }
+            });
+
+        },
+    ], function (err, results) {
+        debug('Finishing update...')
+        if (err) {
+            debug('Error updating software:' + err)
+            res.send(err.message)
+        } else {
+            debug('Software update completed successfully!')
+            res.send(results[3])
+        }
+    });
 }
