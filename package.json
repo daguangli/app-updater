@@ -1,0 +1,19 @@
+{
+  "name": "app-updater",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daguangli/app-updater.git"
+  },
+  "author": "Daniel Li <bigdanlee@hotmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/daguangli/app-updater/issues"
+  },
+  "homepage": "https://github.com/daguangli/app-updater#readme"
+}
