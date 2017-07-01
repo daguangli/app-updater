@@ -1,6 +1,6 @@
 {
   "name": "app-updater",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -15,5 +15,12 @@
   "bugs": {
     "url": "https://github.com/daguangli/app-updater/issues"
   },
-  "homepage": "https://github.com/daguangli/app-updater#readme"
+  "homepage": "https://github.com/daguangli/app-updater#readme",
+  "dependencies": {
+    "debug": "^2.6.8",
+    "del": "^3.0.0",
+    "neo-async": "^2.2.2",
+    "pm2": "^2.5.0",
+    "unzip": "^0.1.11"
+  }
 }

@@ -1,6 +1,5 @@
 const pm2 = require('pm2')
     , unzip = require('unzip')
-    , express = require('express')
     , fs = require('fs')
     , del = require('del')
     , async = require('neo-async')
