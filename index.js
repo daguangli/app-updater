@@ -64,7 +64,7 @@ module.exports = function (opts, topcb) {
         function (callback) {
             debug('npm install...')
             process.chdir(opts.appPath)
-            exec('npm i', function (err, stdout, stderr) {
+            exec('npm i --production', function (err, stdout, stderr) {
                 if (err) {
                     debug(err)
                     callback(err)
