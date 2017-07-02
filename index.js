@@ -13,6 +13,7 @@ const pm2 = require('pm2')
     , async = require('neo-async')
     , debug = require('debug')('app-updater:main')
     , { exec } = require('child_process')
+    , path = require('path')
 
 module.exports = function (opts, topcb) {
     if (!opts) {
@@ -42,17 +43,17 @@ module.exports = function (opts, topcb) {
 
     async.series([
         function (callback) {
-            debug('Start clean folder')
+            debug('Start clean folder...')
             del([opts.appPath + '**/*', opts.appPath + '!node_modules/**'], { force: true }).then(function (path) {
-                debug('deleted folder:' + path)
-                callback(null, path)
+                debug('Finished clean prod folder')
+                callback(null, null)
             })
         },
         function (callback) {
             debug('unzipping...')
             var stream = fs.createReadStream(opts.zipPath).pipe(unzip.Extract({ path: opts.appPath }))
             stream.on('finish', function () {
-                debug('finished unzip')
+                debug('Finished unzip')
                 callback(null, null)
             })
             stream.on('error', function (err) {
@@ -64,7 +65,6 @@ module.exports = function (opts, topcb) {
             debug('npm install...')
             process.chdir(opts.appPath)
             exec('npm i', function (err, stdout, stderr) {
-
                 if (err) {
                     debug(err)
                     callback(err)
@@ -81,9 +81,10 @@ module.exports = function (opts, topcb) {
                     callback(err);
                 }
                 pm2.describe(opts.processName, function (err, proc) {
-                    if (err) {
+                    if (proc.length === 0) {
                         pm2.start({
-                            script: opts.script || 'app.js',         // Script to be run
+                            name: opts.processName,
+                            script: opts.script || 'index.js',         // Script to be run
                             exec_mode: 'cluster',        // Allows your app to be clustered
                             instances: 1
                         }, function (err, apps) {
