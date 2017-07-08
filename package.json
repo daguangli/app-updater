@@ -1,5 +1,5 @@
 {
-  "name": "node-app-updater",
+  "name": "app-updater",
   "version": "1.0.2",
   "description": "",
   "main": "index.js",
