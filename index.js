@@ -11,7 +11,7 @@ const pm2 = require('pm2')
     , fs = require('fs')
     , del = require('del')
     , async = require('neo-async')
-    , debug = require('debug')('app-updater:main')
+    , debug = require('debug')('node-app-updater:main')
     , { exec } = require('child_process')
     , path = require('path')
 
@@ -21,12 +21,6 @@ module.exports = function (opts, topcb) {
     }
     if (typeof opts !== 'object') {
         throw new TypeError('Options must be of type object.')
-    }
-    if (!opts.zipPath) {
-        throw new Error('zipPath must be provided.')
-    }
-    if (!path.isAbsolute(opts.zipPath)) {
-        throw new TypeError('zipPath must be absolute')
     }
     if (!opts.appPath) {
         throw new Error('appPath must be provided.')
@@ -51,7 +45,7 @@ module.exports = function (opts, topcb) {
         },
         function (callback) {
             debug('unzipping...')
-            var stream = fs.createReadStream(opts.zipPath).pipe(unzip.Extract({ path: opts.appPath }))
+            var stream = fs.createReadStream(opts.appPath + '/' + opts.processName + '.zip').pipe(unzip.Extract({ path: opts.appPath }))
             stream.on('finish', function () {
                 debug('Finished unzip')
                 callback(null, null)
