@@ -38,14 +38,14 @@ module.exports = function (opts, topcb) {
     async.series([
         function (callback) {
             debug('Start clean folder...')
-            del([opts.appPath + '**/*', '!' + opts.appPath + '/node_modules/**', '!' + opts.appPath + '/*.zip'], { force: true }).then(function (path) {
+            del([opts.appPath + '**/*', '!' + opts.appPath + '/node_modules/**', '!' + opts.appPath + '/builds/**/*'], { force: true }).then(function (path) {
                 debug('Finished clean prod folder')
                 callback(null, null)
             })
         },
         function (callback) {
             debug('unzipping...')
-            var stream = fs.createReadStream(opts.appPath + '/' + opts.processName + '.zip').pipe(unzip.Extract({ path: opts.appPath }))
+            var stream = fs.createReadStream(opts.appPath + '/builds/' + opts.processName + '.zip').pipe(unzip.Extract({ path: opts.appPath }))
             stream.on('finish', function () {
                 debug('Finished unzip')
                 callback(null, null)
