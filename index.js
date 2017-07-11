@@ -52,7 +52,7 @@ module.exports = function (opts, topcb) {
         },
         function (callback) {
             debug('unzipping...')
-            extract(source, { dir: target }, function (err) {
+            extract(opts.buildPath, { dir: opts.appPath }, function (err) {
                 if (err) {
                     debug('unzip failed')
                     callback(err)
@@ -85,8 +85,7 @@ module.exports = function (opts, topcb) {
                     if (proc.length === 0) {
                         pm2.start({
                             name: opts.processName,
-                            script: opts.script || 'index.js',         // Script to be run
-                            exec_mode: 'cluster',        // Allows your app to be clustered
+                            script: opts.script || 'index.js',
                             instances: 1
                         }, function (err, apps) {
                             pm2.disconnect();
@@ -99,7 +98,7 @@ module.exports = function (opts, topcb) {
                             }
                         });
                     } else {
-                        pm2.gracefulReload(opts.processName, function (err, proc) {
+                        pm2.restart(opts.processName, function (err, proc) {
                             pm2.disconnect();
                             if (err) {
                                 debug('Failed to reload process ' + opts.processName)
