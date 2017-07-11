@@ -7,7 +7,7 @@
 'use strict'
 
 const pm2 = require('pm2')
-    , unzip = require('unzip')
+    , extract = require('extract-zip')
     , fs = require('fs')
     , del = require('del')
     , async = require('neo-async')
@@ -28,6 +28,12 @@ module.exports = function (opts, topcb) {
     if (!path.isAbsolute(opts.appPath)) {
         throw new TypeError('appPath must be absolute')
     }
+    if (!opts.buildPath) {
+        throw new Error('buildPath must be provided.')
+    }
+    if (!path.isAbsolute(opts.buildPath)) {
+        throw new TypeError('buildPath must be absolute')
+    }
     if (!opts.processName) {
         throw new Error('processName must be provided.')
     }
@@ -38,22 +44,22 @@ module.exports = function (opts, topcb) {
     async.series([
         function (callback) {
             debug('Start clean folder...')
-            var buildsPath = path.resolve(appPath + '/builds')
-            del([opts.appPath + '/**', '!' + opts.appPath, '!' + buildsPath, '!' + buildsPath + '/*.zip'], { force: true }).then(function (path) {
+            del([opts.appPath + '/**', '!' + opts.appPath, '!' + opts.appPath + '/node_modules',
+            '!' + opts.appPath + '/node_modules/**/*'], { force: true }).then(function (path) {
                 debug('Finished clean prod folder')
                 callback(null, null)
             })
         },
         function (callback) {
             debug('unzipping...')
-            var stream = fs.createReadStream(opts.appPath + '/builds/' + opts.processName + '.zip').pipe(unzip.Extract({ path: opts.appPath }))
-            stream.on('finish', function () {
-                debug('Finished unzip')
-                callback(null, null)
-            })
-            stream.on('error', function (err) {
-                debug('Failed unzip')
-                callback(err)
+            extract(source, { dir: target }, function (err) {
+                if (err) {
+                    debug('unzip failed')
+                    callback(err)
+                } else {
+                    debug('Finished unzip')
+                    callback(null, null)
+                }
             })
         },
         function (callback) {
