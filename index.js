@@ -38,7 +38,8 @@ module.exports = function (opts, topcb) {
     async.series([
         function (callback) {
             debug('Start clean folder...')
-            del([opts.appPath + '/**', '!' + opts.appPath, '!' + opts.appPath + '/node_modules/**/*', '!' + opts.appPath + '/builds/**/*'], { force: true }).then(function (path) {
+            var buildsPath = path.resolve(appPath + '/builds')
+            del([opts.appPath + '/**', '!' + opts.appPath, '!' + buildsPath, '!' + buildsPath + '/*.zip'], { force: true }).then(function (path) {
                 debug('Finished clean prod folder')
                 callback(null, null)
             })
